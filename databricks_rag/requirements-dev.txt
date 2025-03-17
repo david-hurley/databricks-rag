@@ -1,0 +1,9 @@
+## requirements-dev.txt: dependencies for local development.
+##
+## For defining dependencies used by jobs in Databricks Workflows, see
+## https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
+
+pytest
+PyMuPDF==1.25.3
+mistralai==1.5.1
+openai==1.66.3
