@@ -33,7 +33,7 @@ def is_llm_response_valid(raw_response):
     """ """
         
     try:
-        ExpectedMetadataSchema.model_validate_json(raw_response.choices[0]['message']['content'])
+        ExpectedMetadataSchema.model_validate_json(raw_response['choices'][0]['message']['content'])
         return True
     except ValidationError as e:
         print("Unable to validate LLM response schema.")
@@ -41,7 +41,7 @@ def is_llm_response_valid(raw_response):
 
 def parse_valid_llm_response(raw_response):
     """ """
-    json_response = from_json(raw_response.choices[0]['message']['content'], allow_partial=False)
+    json_response = from_json(raw_response['choices'][0]['message']['content'], allow_partial=False)
     json_response['fileNumber'] = int(json_response['fileNumber'].replace('-', ''))
     return json_response
 
