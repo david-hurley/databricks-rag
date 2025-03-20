@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=bundle_config_schema.json
+
+# This is a Databricks asset bundle definition for datakickstart_dabs.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: databricks_rag
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    default: "databricks_examples"
+  database:
+    default: "financial_rag"
+  openai_endpoint_name:
+    default: "openai_completion_endpoint"
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-7bab1453-ec12.cloud.databricks.com
+

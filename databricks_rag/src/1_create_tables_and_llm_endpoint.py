@@ -28,6 +28,24 @@ import mlflow.deployments
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ## Fetch Parameter Values
+# MAGIC We want to be able to test this notebook and as such be able to pass in a testing name for endpoint and tables. 
+
+# COMMAND ----------
+
+# create widget parameters and defaults
+dbutils.widgets.text("openai_endpoint_name", "openai_completion_endpoint")
+dbutils.widgets.text("catalog", "databricks_examples")
+dbutils.widgets.text("database", "financial_rag")
+
+# retrieve widget values
+endpoint_name = dbutils.widgets.get("openai_endpoint_name")
+catalog = dbutils.widgets.get("catalog")
+database = dbutils.widgets.get("database")
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ##Create external model endpoint pointing to OpenAI o3-mini
 
 # COMMAND ----------
@@ -35,7 +53,7 @@ import mlflow.deployments
 client = mlflow.deployments.get_deploy_client("databricks")
 
 endpoint = client.create_endpoint(
-    name="openai-completion-endpoint",
+    name=endpoint_name,
     config={
         "served_entities": [
             {
@@ -60,23 +78,25 @@ endpoint = client.create_endpoint(
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC CREATE TABLE IF NOT EXISTS databricks_examples.financial_rag.pdf_metadata (
-# MAGIC     fileNumber BIGINT PRIMARY KEY,
-# MAGIC     companyName STRING,
-# MAGIC     tradingSymbol STRING,
-# MAGIC     fiscalYearEndDate STRING,
-# MAGIC     documentHash STRING
-# MAGIC ) TBLPROPERTIES (delta.enableChangeDataFeed = true);
-# MAGIC
-# MAGIC CREATE TABLE IF NOT EXISTS databricks_examples.financial_rag.pdf_markdown_text (
-# MAGIC     id BIGINT GENERATED ALWAYS AS IDENTITY,
-# MAGIC     fileNumber BIGINT,
-# MAGIC     markdownText STRING,
-# MAGIC     pageNumber INT,
-# MAGIC     FOREIGN KEY (fileNumber) REFERENCES databricks_examples.financial_rag.pdf_metadata(fileNumber)
-# MAGIC ) TBLPROPERTIES (delta.enableChangeDataFeed = true);
+create_metadata_table_query = f"""
+CREATE TABLE IF NOT EXISTS {catalog}.{database}.pdf_metadata (
+    fileNumber BIGINT PRIMARY KEY,
+    companyName STRING,
+    tradingSymbol STRING,
+    fiscalYearEndDate STRING,
+    documentHash STRING
+) TBLPROPERTIES (delta.enableChangeDataFeed = true);
+"""
 
-# COMMAND ----------
+create_markdown_table_query = f"""
+CREATE TABLE IF NOT EXISTS {catalog}.{database}.pdf_markdown_text (
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    fileNumber BIGINT,
+    markdownText STRING,
+    pageNumber INT,
+    FOREIGN KEY (fileNumber) REFERENCES {catalog}.{database}.pdf_metadata(fileNumber)
+) TBLPROPERTIES (delta.enableChangeDataFeed = true);
+"""
 
-
+spark.sql(create_metadata_table_query)
+spark.sql(create_markdown_table_query)

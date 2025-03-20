@@ -1,0 +1,14 @@
+resources:
+  jobs:
+    test_rag_pipeline_job:
+      name: test_rag_pipeline
+
+      tasks:
+        - task_key: setup_test_env
+          notebook_task:
+            notebook_path: /Workspace/Users/hurleyldave2@gmail.com/databricks-rag/databricks_rag/src/1_create_tables_and_llm_endpoint.py
+            base_parameters:
+              openai_endpoint_name: ${var.test_openai_completion_endpoint}
+              catalog: ${var.databricks_examples}
+              database: ${var.test_financial_rag}
+          max_retries: 0
