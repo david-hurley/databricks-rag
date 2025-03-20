@@ -1,6 +1,6 @@
 import pymupdf
 
-def extract_pdf_text(path_to_file):
+def extract_pdf_text_basic(path_to_file):
     """
     Extracts the text from the PDF file specified by the given path.
 
@@ -15,4 +15,3 @@ def extract_pdf_text(path_to_file):
     pdf_text = [page.get_text() for page in pdf_obj]
 
     return pdf_text
-

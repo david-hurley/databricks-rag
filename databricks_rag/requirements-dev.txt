@@ -3,7 +3,8 @@
 ## For defining dependencies used by jobs in Databricks Workflows, see
 ## https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
 
-pytest
+pytest==8.3.5
 PyMuPDF==1.25.3
 mistralai==1.5.1
 openai==1.66.3
+databricks-vectorsearch==0.53
