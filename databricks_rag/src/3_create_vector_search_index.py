@@ -20,7 +20,7 @@ client.create_endpoint(
 
 # COMMAND ----------
 
-index = client.get_index(endpoint_name="form10k_vector_search_endpoint", index_name="databricks_examples.financial_rag.vector_index")
+index = client.get_index(endpoint_name="form10k_vector_search_endpoint", index_name="databricks_examples.financial_rag.markdown_text_vectors")
 index.describe()
 
 # COMMAND ----------
@@ -33,6 +33,11 @@ results = index.similarity_search(
 
 # COMMAND ----------
 
-for result in results:
-    print(f"Page Number: {result['result']['data_array'][0][0]}")
-    print(f"Content: {result['result']['data_array'][0][1]}")
+for entry in results['result']['data_array']:
+    print(f"Page Number: {entry[0]}")
+    print(f"Content: {entry[1]}")
+    print("")
+
+# COMMAND ----------
+
+
