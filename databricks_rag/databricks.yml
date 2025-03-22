@@ -10,11 +10,11 @@ include:
 
 variables:
   catalog:
-    default: "databricks_examples"
-  database:
-    default: "financial_rag"
-  openai_endpoint_name:
-    default: "openai_completion_endpoint"
+    default: databricks_examples
+  test_database:
+    default: test_financial_rag
+  test_openai_endpoint_name:
+    default: test_openai_completion_endpoint
 
 targets:
   dev:

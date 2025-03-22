@@ -43,6 +43,8 @@ endpoint_name = dbutils.widgets.get("openai_endpoint_name")
 catalog = dbutils.widgets.get("catalog")
 database = dbutils.widgets.get("database")
 
+print(endpoint_name, catalog, database)
+
 # COMMAND ----------
 
 # MAGIC %md

@@ -6,9 +6,9 @@ resources:
       tasks:
         - task_key: setup_test_env
           notebook_task:
-            notebook_path: /Workspace/Users/hurleyldave2@gmail.com/databricks-rag/databricks_rag/src/1_create_tables_and_llm_endpoint.py
+            notebook_path: /Workspace/Users/hurleyldave2@gmail.com/databricks-rag/databricks_rag/src/1_create_tables_and_llm_endpoint
             base_parameters:
-              openai_endpoint_name: ${var.test_openai_completion_endpoint}
-              catalog: ${var.databricks_examples}
-              database: ${var.test_financial_rag}
+              openai_endpoint_name: ${var.test_openai_endpoint_name}
+              catalog: ${var.catalog}
+              database: ${var.test_database}
           max_retries: 0
