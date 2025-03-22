@@ -54,6 +54,19 @@ print(endpoint_name, catalog, database)
 
 client = mlflow.deployments.get_deploy_client("databricks")
 
+delete_endpoint = False
+try:
+    client.get_endpoint(endpoint_name)
+    print("Endpoint exists, we should delete and recreate")
+    delete_endpoint = True
+except:
+    print("Endpoint does not exist, we should create")
+    pass
+
+if delete_endpoint:
+    client.delete_endpoint(endpoint_name)
+    print("Endpoint deleted")
+
 endpoint = client.create_endpoint(
     name=endpoint_name,
     config={
@@ -73,12 +86,20 @@ endpoint = client.create_endpoint(
     },
 )
 
+print("Endpoint created")
+
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Create tables in Unity Catalog to store document metadata and text
 
 # COMMAND ----------
+
+create_schema_query = f"""
+CREATE SCHEMA IF NOT EXISTS {catalog}.{database}
+"""
+
+spark.sql(create_schema_query)
 
 create_metadata_table_query = f"""
 CREATE TABLE IF NOT EXISTS {catalog}.{database}.pdf_metadata (

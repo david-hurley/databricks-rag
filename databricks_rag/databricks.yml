@@ -4,6 +4,7 @@
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
   name: databricks_rag
+  uuid: 55f45614-8f66-49b6-adb0-eb3e64188692
 
 include:
   - resources/*.yml
@@ -26,4 +27,3 @@ targets:
     default: true
     workspace:
       host: https://dbc-7bab1453-ec12.cloud.databricks.com
-

@@ -1,12 +1,13 @@
+# The main job for test_env_setup.
 resources:
   jobs:
-    test_rag_pipeline_job:
-      name: test_rag_pipeline
+    test_env_setup_job:
+      name: test_env_setup_job
 
       tasks:
-        - task_key: setup_test_env
+        - task_key: notebook_task
           notebook_task:
-            notebook_path: /Workspace/Users/hurleyldave2@gmail.com/databricks-rag/databricks_rag/src/1_create_tables_and_llm_endpoint
+            notebook_path: ../src/1_create_tables_and_llm_endpoint.py
             base_parameters:
               openai_endpoint_name: ${var.test_openai_endpoint_name}
               catalog: ${var.catalog}
