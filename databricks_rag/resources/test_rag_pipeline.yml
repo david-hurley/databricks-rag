@@ -1,0 +1,33 @@
+# The main job for test_env_setup.
+resources:
+  jobs:
+    test_rag_pipeline:
+      name: test_rag_pipeline_e2e
+
+      tasks:
+        - task_key: notebook_task
+          notebook_task:
+            notebook_path: ../src/1_create_tables_and_llm_endpoint.py
+            base_parameters:
+              openai_endpoint_name: ${var.test_openai_endpoint_name}
+              catalog: ${var.catalog}
+              database: ${var.test_database}
+          max_retries: 0
+
+        - task_key: notebook_task
+          notebook_task:
+            notebook_path: ../src/2_ocr_pdf_and_create_text_chunks.py
+            base_parameters:
+              volume: ${var.test_form10k_pdfs}
+              catalog: ${var.catalog}
+              database: ${var.test_database}
+          max_retries: 0
+
+        - task_key: notebook_task
+          notebook_task:
+            notebook_path: ../src/3_create_vector_search_index.py
+            base_parameters:
+              openai_endpoint_name: ${var.test_openai_endpoint_name}
+              catalog: ${var.catalog}
+              database: ${var.test_database}
+          max_retries: 0

@@ -4,15 +4,15 @@ spark = SparkSession.builder \
     .appName("rag-app") \
     .getOrCreate()
     
-def create_update_pdf_metadata(json_metadata):
+def create_update_pdf_metadata(json_metadata, database):
     
     json_metadata_df = spark.createDataFrame([json_metadata])
 
     json_metadata_df.createOrReplaceTempView("json_metadata_view")
 
     # update metadata if file number exists otherwise insert new
-    upsert_query = """
-    MERGE INTO databricks_examples.financial_rag.pdf_metadata AS target
+    upsert_query = f"""
+    MERGE INTO databricks_examples.{database}.pdf_metadata AS target
     USING json_metadata_view AS source
     ON target.fileNumber = source.fileNumber
     WHEN MATCHED THEN

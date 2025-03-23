@@ -33,7 +33,19 @@ from utils.delete_create_pdf_text import delete_create_pdf_text
 
 # COMMAND ----------
 
-pdfs_volume_path = "/Volumes/databricks_examples/financial_rag/form10k_pdfs"
+# create widget parameters and defaults
+dbutils.widgets.text("volume", "form10k_pdfs")
+dbutils.widgets.text("catalog", "databricks_examples")
+dbutils.widgets.text("database", "financial_rag")
+
+# retrieve widget values
+volume = dbutils.widgets.get("volume")
+catalog = dbutils.widgets.get("catalog")
+database = dbutils.widgets.get("database")
+
+# COMMAND ----------
+
+pdfs_volume_path = f"/Volumes/{catalog}/{database}/{volume}"
 pdfs_to_process = get_path_of_files_modified_in_last_day(pdfs_volume_path)
 
 # COMMAND ----------
