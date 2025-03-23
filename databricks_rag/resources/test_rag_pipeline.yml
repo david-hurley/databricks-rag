@@ -7,11 +7,13 @@ resources:
       tasks:
         - task_key: notebook_task
           notebook_task:
-            notebook_path: ../src/1_create_tables_and_llm_endpoint.py
+            notebook_path: ../src/1_setup_infra_for_rag_pipeline.py
             base_parameters:
               openai_endpoint_name: ${var.test_openai_endpoint_name}
               catalog: ${var.catalog}
               database: ${var.test_database}
+              raw_pdf_volume: ${var.test_pdf_volume}
+              markdown_volume: ${var.test_markdown_volume}
           max_retries: 0
 
         - task_key: notebook_task
@@ -21,13 +23,6 @@ resources:
               volume: ${var.test_form10k_pdfs}
               catalog: ${var.catalog}
               database: ${var.test_database}
-          max_retries: 0
-
-        - task_key: notebook_task
-          notebook_task:
-            notebook_path: ../src/3_create_vector_search_index.py
-            base_parameters:
-              openai_endpoint_name: ${var.test_openai_endpoint_name}
-              catalog: ${var.catalog}
-              database: ${var.test_database}
+              raw_pdf_volume: ${var.test_pdf_volume}
+              markdown_volume: ${var.test_markdown_volume}
           max_retries: 0

@@ -16,6 +16,10 @@ variables:
     default: test_financial_rag
   test_openai_endpoint_name:
     default: test_openai_completion_endpoint
+  test_pdf_volume: 
+    default: test_form10k_pdfs
+  test_markdown_volume: 
+    default: test_form10k_markdown 
 
 targets:
   dev:

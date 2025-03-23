@@ -5,9 +5,7 @@ import mlflow.deployments
 
 # MAGIC %md
 # MAGIC ## What this notebook does
-# MAGIC 1. Create secret scope for OpenAI and Mistral API key
-# MAGIC 2. Create external model endpoint pointing to OpenAI o3-mini
-# MAGIC 3. Create tables in Unity Catalog to store document metadata and text
+# MAGIC This notebook creates the infrastructure necessary to run the RAG pipeline. It is seperated from pipeline logic so that it can be called with variable parameters in different environments and in testing.
 
 # COMMAND ----------
 
@@ -29,26 +27,29 @@ import mlflow.deployments
 
 # MAGIC %md
 # MAGIC ## Fetch Parameter Values
-# MAGIC We want to be able to test this notebook and as such be able to pass in a testing name for endpoint and tables. 
+# MAGIC This allows running the notebook in different environments and testing. Parameters are defined in `databricks.yml` which is part of Databricks Asset Bundle.
 
 # COMMAND ----------
 
 # create widget parameters and defaults
 dbutils.widgets.text("openai_endpoint_name", "openai_completion_endpoint")
+dbutils.widgets.text("raw_pdf_volume", "form10k_pdfs")
+dbutils.widgets.text("markdown_volume", "form10k_markdown")
 dbutils.widgets.text("catalog", "databricks_examples")
 dbutils.widgets.text("database", "financial_rag")
 
 # retrieve widget values
 endpoint_name = dbutils.widgets.get("openai_endpoint_name")
+raw_pdf_volume = dbutils.widgets.get("raw_pdf_volume")
+markdown_volume = dbutils.widgets.get("markdown_volume")
 catalog = dbutils.widgets.get("catalog")
 database = dbutils.widgets.get("database")
-
-print(endpoint_name, catalog, database)
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##Create external model endpoint pointing to OpenAI o3-mini
+# MAGIC Try to create model serving endpoint. If endpoint already exists then delete and recreate to ensure new model settings are reflected.
 
 # COMMAND ----------
 
@@ -57,15 +58,15 @@ client = mlflow.deployments.get_deploy_client("databricks")
 delete_endpoint = False
 try:
     client.get_endpoint(endpoint_name)
-    print("Endpoint exists, we should delete and recreate")
+    print(f"Model serving endpoint {endpoint_name} already exists, attempting to delete and recreate")
     delete_endpoint = True
 except:
-    print("Endpoint does not exist, we should create")
+    print(f"Model serving endpoint {endpoint_name} does not exist, attempting to create")
     pass
 
 if delete_endpoint:
     client.delete_endpoint(endpoint_name)
-    print("Endpoint deleted")
+    print(f"Successfully deleted model serving endpoint {endpoint_name}")
 
 endpoint = client.create_endpoint(
     name=endpoint_name,
@@ -86,12 +87,27 @@ endpoint = client.create_endpoint(
     },
 )
 
-print("Endpoint created")
+print(f"Successfully created model serving endpoint {endpoint_name}")
+
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Create tables in Unity Catalog to store document metadata and text
+# MAGIC ## Create database, volumes, and tables
+
+# COMMAND ----------
+
+create_raw_pdf_volume = f"""
+CREATE VOLUME IF NOT EXISTS {catalog}.{database}.{raw_pdf_volume}
+"""
+
+spark.sql(create_raw_pdf_volume)
+
+create_markdown_volume = f"""
+CREATE VOLUME IF NOT EXISTS {catalog}.{database}.{markdown_volume}
+"""
+
+spark.sql(create_markdown_volume)
 
 # COMMAND ----------
 
@@ -101,23 +117,25 @@ CREATE SCHEMA IF NOT EXISTS {catalog}.{database}
 
 spark.sql(create_schema_query)
 
+# COMMAND ----------
+
 create_metadata_table_query = f"""
 CREATE TABLE IF NOT EXISTS {catalog}.{database}.pdf_metadata (
-    fileNumber BIGINT PRIMARY KEY,
-    companyName STRING,
-    tradingSymbol STRING,
-    fiscalYearEndDate STRING,
-    documentHash STRING
+fileNumber BIGINT PRIMARY KEY,
+companyName STRING,
+tradingSymbol STRING,
+fiscalYearEndDate STRING,
+documentHash STRING
 ) TBLPROPERTIES (delta.enableChangeDataFeed = true);
 """
 
 create_markdown_table_query = f"""
 CREATE TABLE IF NOT EXISTS {catalog}.{database}.pdf_markdown_text (
-    id BIGINT GENERATED ALWAYS AS IDENTITY,
-    fileNumber BIGINT,
-    markdownText STRING,
-    pageNumber INT,
-    FOREIGN KEY (fileNumber) REFERENCES {catalog}.{database}.pdf_metadata(fileNumber)
+id BIGINT GENERATED ALWAYS AS IDENTITY,
+fileNumber BIGINT,
+markdownText STRING,
+pageNumber INT,
+FOREIGN KEY (fileNumber) REFERENCES {catalog}.{database}.pdf_metadata(fileNumber)
 ) TBLPROPERTIES (delta.enableChangeDataFeed = true);
 """
 

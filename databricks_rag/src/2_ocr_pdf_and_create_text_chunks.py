@@ -34,18 +34,22 @@ from utils.delete_create_pdf_text import delete_create_pdf_text
 # COMMAND ----------
 
 # create widget parameters and defaults
-dbutils.widgets.text("volume", "form10k_pdfs")
+dbutils.widgets.text("openai_endpoint_name", "openai_completion_endpoint")
+dbutils.widgets.text("raw_pdf_volume", "form10k_pdfs")
+dbutils.widgets.text("markdown_volume", "form10k_markdown")
 dbutils.widgets.text("catalog", "databricks_examples")
 dbutils.widgets.text("database", "financial_rag")
 
 # retrieve widget values
-volume = dbutils.widgets.get("volume")
+endpoint_name = dbutils.widgets.get("openai_endpoint_name")
+raw_pdf_volume = dbutils.widgets.get("raw_pdf_volume")
+markdown_volume = dbutils.widgets.get("markdown_volume")
 catalog = dbutils.widgets.get("catalog")
 database = dbutils.widgets.get("database")
 
 # COMMAND ----------
 
-pdfs_volume_path = f"/Volumes/{catalog}/{database}/{volume}"
+pdfs_volume_path = f"/Volumes/{catalog}/{database}/{raw_pdf_volume}"
 pdfs_to_process = get_path_of_files_modified_in_last_day(pdfs_volume_path)
 
 # COMMAND ----------
@@ -56,7 +60,7 @@ for pdf_path in pdfs_to_process:
     pdf_text = extract_pdf_text_basic(pdf_path)
 
     # we know metadata exists on first page of form-10k
-    raw_response = get_form10k_metadata_from_pdf_text_with_llm(pdf_text[0], "openai-completion-endpoint")
+    raw_response = get_form10k_metadata_from_pdf_text_with_llm(pdf_text[0], endpoint_name)
 
     # pydantic validation
     isResponseValid = is_llm_response_valid(raw_response)
@@ -80,13 +84,14 @@ for pdf_path in pdfs_to_process:
 
     # save markdown to volume
     markdown_file_name = pdfs_to_process[0].split("/")[-1].replace(".pdf", ".md")
-    with open(f"/Volumes/databricks_examples/financial_rag/form10k_markdown/{markdown_file_name}", "wt") as f:
+
+    with open(f"/Volumes/{catalog}/{database}/{markdown_volume}/{markdown_file_name}", "wt") as f:
         for page in pdf_markdown.pages:
             f.write(page.markdown)
 
     # update metadata and text tables
-    create_update_pdf_metadata(json_metadata)
-    delete_create_pdf_text(json_metadata, pdf_markdown)
+    create_update_pdf_metadata(json_metadata, catalog, database)
+    delete_create_pdf_text(json_metadata, pdf_markdown, catalog, database)
 
 # COMMAND ----------
 
@@ -98,8 +103,6 @@ for pdf_path in pdfs_to_process:
 query = "SELECT * FROM databricks_examples.financial_rag.pdf_metadata"
 result_df = spark.sql(query)
 display(result_df)
-
-# 5bda4e72a9b82f27960c5d963d05b7d10802458b5911b867ac135eac91d94ab9
 
 # COMMAND ----------
 
