@@ -8,3 +8,4 @@ scratch/**
 !scratch/README.md
 .vscode/
 .pytest_cache
+myenv/
