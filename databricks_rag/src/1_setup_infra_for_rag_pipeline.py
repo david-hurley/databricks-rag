@@ -33,17 +33,12 @@ import mlflow.deployments
 
 # create widget parameters and defaults
 dbutils.widgets.text("openai_endpoint_name", "openai_completion_endpoint")
-dbutils.widgets.text("raw_pdf_volume", "form10k_pdfs")
-dbutils.widgets.text("markdown_volume", "form10k_markdown")
-dbutils.widgets.text("catalog", "databricks_examples")
 dbutils.widgets.text("database", "financial_rag")
 
 # retrieve widget values
 endpoint_name = dbutils.widgets.get("openai_endpoint_name")
-raw_pdf_volume = dbutils.widgets.get("raw_pdf_volume")
-markdown_volume = dbutils.widgets.get("markdown_volume")
-catalog = dbutils.widgets.get("catalog")
 database = dbutils.widgets.get("database")
+database = "test_financial_rag"
 
 # COMMAND ----------
 
@@ -97,30 +92,30 @@ print(f"Successfully created model serving endpoint {endpoint_name}")
 
 # COMMAND ----------
 
-create_raw_pdf_volume = f"""
-CREATE VOLUME IF NOT EXISTS {catalog}.{database}.{raw_pdf_volume}
-"""
-
-spark.sql(create_raw_pdf_volume)
-
-create_markdown_volume = f"""
-CREATE VOLUME IF NOT EXISTS {catalog}.{database}.{markdown_volume}
-"""
-
-spark.sql(create_markdown_volume)
-
-# COMMAND ----------
-
 create_schema_query = f"""
-CREATE SCHEMA IF NOT EXISTS {catalog}.{database}
+CREATE SCHEMA IF NOT EXISTS databricks_examples.{database}
 """
 
 spark.sql(create_schema_query)
 
 # COMMAND ----------
 
+create_raw_pdf_volume = f"""
+CREATE VOLUME IF NOT EXISTS databricks_examples.{database}.form10k_pdfs
+"""
+
+spark.sql(create_raw_pdf_volume)
+
+create_markdown_volume = f"""
+CREATE VOLUME IF NOT EXISTS databricks_examples.{database}.form10k_markdown
+"""
+
+spark.sql(create_markdown_volume)
+
+# COMMAND ----------
+
 create_metadata_table_query = f"""
-CREATE TABLE IF NOT EXISTS {catalog}.{database}.pdf_metadata (
+CREATE TABLE IF NOT EXISTS databricks_examples.{database}.pdf_metadata (
 fileNumber BIGINT PRIMARY KEY,
 companyName STRING,
 tradingSymbol STRING,
@@ -130,14 +125,31 @@ documentHash STRING
 """
 
 create_markdown_table_query = f"""
-CREATE TABLE IF NOT EXISTS {catalog}.{database}.pdf_markdown_text (
+CREATE TABLE IF NOT EXISTS databricks_examples.{database}.pdf_markdown_text (
 id BIGINT GENERATED ALWAYS AS IDENTITY,
 fileNumber BIGINT,
 markdownText STRING,
 pageNumber INT,
-FOREIGN KEY (fileNumber) REFERENCES {catalog}.{database}.pdf_metadata(fileNumber)
+FOREIGN KEY (fileNumber) REFERENCES databricks_examples.{database}.pdf_metadata(fileNumber)
 ) TBLPROPERTIES (delta.enableChangeDataFeed = true);
 """
 
 spark.sql(create_metadata_table_query)
 spark.sql(create_markdown_table_query)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Copy Test PDF to Test Database
+# MAGIC Only needed for testing
+
+# COMMAND ----------
+
+try:
+  dbutils.fs.cp (
+    f"/Volumes/databricks_examples/financial_rag/form10k_pdfs/MSFT_10K_FIRST_10PG.pdf", 
+    f"/Volumes/databricks_examples/{database}/form10k_pdfs/MSFT_10K_FIRST_10PG.pdf"
+    )
+  print("Copied test PDF to volume")
+except:
+  print("Could not copy test PDF to volume")
