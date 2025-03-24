@@ -23,5 +23,6 @@ except:
 
 # COMMAND ----------
 
-drop_database_query = f"DROP SCHEMA IF EXISTS {database} CASCADE"
+drop_database_query = f"DROP SCHEMA IF EXISTS databricks_examples.{database} CASCADE"
 spark.sql(drop_database_query)
+print("Successfully deleted database and artifacts")
