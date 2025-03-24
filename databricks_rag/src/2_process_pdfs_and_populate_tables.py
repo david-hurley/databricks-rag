@@ -94,15 +94,37 @@ for pdf_path in pdfs_to_process:
 
 # COMMAND ----------
 
+database="test_financial_rag"
+
+# COMMAND ----------
+
 query = f"SELECT * FROM databricks_examples.{database}.pdf_metadata"
 result_df = spark.sql(query)
 display(result_df)
 
 # COMMAND ----------
 
+assert result_df.count() == 1
+assert result_df.select("fileNumber").first()["fileNumber"] == 137845
+assert result_df.select("tradingSymbol").first()["tradingSymbol"] == "MSFT"
+
+# COMMAND ----------
+
 query = f"SELECT * FROM databricks_examples.{database}.pdf_markdown_text"
 result_df = spark.sql(query)
 display(result_df)
+
+# COMMAND ----------
+
+result_df.count()
+
+# COMMAND ----------
+
+result_df.select("filenumber").distinct()
+
+# COMMAND ----------
+
+assert result_df.count() == 10
 
 # COMMAND ----------
 

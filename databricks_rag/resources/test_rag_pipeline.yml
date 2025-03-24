@@ -13,11 +13,30 @@ resources:
               database: ${var.test_database}
           max_retries: 0
 
-        - task_key: rag_ocr_task
+        - task_key: process_pdfs_task
           depends_on:
             - task_key: setup_infra_task
           notebook_task:
-            notebook_path: ../src/2_ocr_pdf_and_create_text_chunks.py
+            notebook_path: ../src/2_process_pdfs_and_populate_tables.py
+            base_parameters:
+              openai_endpoint_name: ${var.test_openai_endpoint_name}
+              database: ${var.test_database}
+          max_retries: 0
+
+        - task_key: validate_process_pdfs_task
+          depends_on:
+            - task_key: process_pdfs_task
+          notebook_task:
+            notebook_path: ../tests/integration_tests/test_process_pdf_pipeline.py
+            base_parameters:
+              database: ${var.test_database}
+          max_retries: 0
+
+        - task_key: teardown_infra_task
+          depends_on:
+            - task_key: validate_process_pdfs_task
+          notebook_task:
+            notebook_path: ../tests/integration_tests/tear_down_infra_for_rag_pipeline.py
             base_parameters:
               openai_endpoint_name: ${var.test_openai_endpoint_name}
               database: ${var.test_database}
