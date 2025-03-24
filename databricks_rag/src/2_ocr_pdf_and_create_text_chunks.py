@@ -35,21 +35,15 @@ from utils.delete_create_pdf_text import delete_create_pdf_text
 
 # create widget parameters and defaults
 dbutils.widgets.text("openai_endpoint_name", "openai_completion_endpoint")
-dbutils.widgets.text("raw_pdf_volume", "form10k_pdfs")
-dbutils.widgets.text("markdown_volume", "form10k_markdown")
-dbutils.widgets.text("catalog", "databricks_examples")
 dbutils.widgets.text("database", "financial_rag")
 
 # retrieve widget values
 endpoint_name = dbutils.widgets.get("openai_endpoint_name")
-raw_pdf_volume = dbutils.widgets.get("raw_pdf_volume")
-markdown_volume = dbutils.widgets.get("markdown_volume")
-catalog = dbutils.widgets.get("catalog")
 database = dbutils.widgets.get("database")
 
 # COMMAND ----------
 
-pdfs_volume_path = f"/Volumes/{catalog}/{database}/{raw_pdf_volume}"
+pdfs_volume_path = f"/Volumes/databricks_examples/{database}/form10k_pdfs"
 pdfs_to_process = get_path_of_files_modified_in_last_day(pdfs_volume_path)
 
 # COMMAND ----------
@@ -85,13 +79,13 @@ for pdf_path in pdfs_to_process:
     # save markdown to volume
     markdown_file_name = pdfs_to_process[0].split("/")[-1].replace(".pdf", ".md")
 
-    with open(f"/Volumes/{catalog}/{database}/{markdown_volume}/{markdown_file_name}", "wt") as f:
+    with open(f"/Volumes/databricks_examples/{database}/form10k_markdown/{markdown_file_name}", "wt") as f:
         for page in pdf_markdown.pages:
             f.write(page.markdown)
 
     # update metadata and text tables
-    create_update_pdf_metadata(json_metadata, catalog, database)
-    delete_create_pdf_text(json_metadata, pdf_markdown, catalog, database)
+    create_update_pdf_metadata(json_metadata, database)
+    delete_create_pdf_text(json_metadata, pdf_markdown, database)
 
 # COMMAND ----------
 
@@ -100,13 +94,13 @@ for pdf_path in pdfs_to_process:
 
 # COMMAND ----------
 
-query = "SELECT * FROM databricks_examples.financial_rag.pdf_metadata"
+query = f"SELECT * FROM databricks_examples.{database}.pdf_metadata"
 result_df = spark.sql(query)
 display(result_df)
 
 # COMMAND ----------
 
-query = "SELECT * FROM databricks_examples.financial_rag.pdf_markdown_text"
+query = f"SELECT * FROM databricks_examples.{database}.pdf_markdown_text"
 result_df = spark.sql(query)
 display(result_df)
 

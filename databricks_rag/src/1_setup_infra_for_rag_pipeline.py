@@ -38,7 +38,6 @@ dbutils.widgets.text("database", "financial_rag")
 # retrieve widget values
 endpoint_name = dbutils.widgets.get("openai_endpoint_name")
 database = dbutils.widgets.get("database")
-database = "test_financial_rag"
 
 # COMMAND ----------
 

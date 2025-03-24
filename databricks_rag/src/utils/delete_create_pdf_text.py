@@ -4,10 +4,10 @@ spark = SparkSession.builder \
     .appName("rag-app") \
     .getOrCreate()
     
-def delete_create_pdf_text(json_metadata, pdf_markdown, catalog, database):
+def delete_create_pdf_text(json_metadata, pdf_markdown, database):
     # drop any rows with the fileNumber - easier to update in case page number/content have chanaged
     drop_query = f"""
-    DELETE FROM {catalog}.{database}.pdf_markdown_text
+    DELETE FROM databricks_examples.{database}.pdf_markdown_text
     WHERE fileNumber = '{json_metadata['fileNumber']}'
     """
     spark.sql(drop_query)
@@ -22,7 +22,7 @@ def delete_create_pdf_text(json_metadata, pdf_markdown, catalog, database):
     page_df.createOrReplaceTempView("page_data_view")
 
     insert_query = f"""
-    INSERT INTO {catalog}.{database}.pdf_markdown_text 
+    INSERT INTO databricks_examples.{database}.pdf_markdown_text 
     (fileNumber, markdownText, pageNumber)
     SELECT fileNumber, markdownText, pageNumber FROM page_data_view
     """
