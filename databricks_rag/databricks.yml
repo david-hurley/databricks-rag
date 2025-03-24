@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=bundle_config_schema.json
+bundle:
+  name: databricks_rag
+  uuid: 55f45614-8f66-49b6-adb0-eb3e64188692
+
+include:
+  - resources/*.yml
+
+variables:
+  test_database:
+    default: test_financial_rag
+  test_openai_endpoint_name:
+    default: test_openai_completion_endpoint
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-7bab1453-ec12.cloud.databricks.com

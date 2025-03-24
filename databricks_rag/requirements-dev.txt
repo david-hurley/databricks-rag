@@ -8,3 +8,4 @@ PyMuPDF==1.25.3
 mistralai==1.5.1
 openai==1.66.3
 databricks-vectorsearch==0.53
+mlflow==2.21.0

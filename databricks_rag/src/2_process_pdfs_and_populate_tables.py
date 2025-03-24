@@ -33,7 +33,17 @@ from utils.delete_create_pdf_text import delete_create_pdf_text
 
 # COMMAND ----------
 
-pdfs_volume_path = "/Volumes/databricks_examples/financial_rag/form10k_pdfs"
+# create widget parameters and defaults
+dbutils.widgets.text("openai_endpoint_name", "openai_completion_endpoint")
+dbutils.widgets.text("database", "financial_rag")
+
+# retrieve widget values
+endpoint_name = dbutils.widgets.get("openai_endpoint_name")
+database = dbutils.widgets.get("database")
+
+# COMMAND ----------
+
+pdfs_volume_path = f"/Volumes/databricks_examples/{database}/form10k_pdfs"
 pdfs_to_process = get_path_of_files_modified_in_last_day(pdfs_volume_path)
 
 # COMMAND ----------
@@ -44,7 +54,7 @@ for pdf_path in pdfs_to_process:
     pdf_text = extract_pdf_text_basic(pdf_path)
 
     # we know metadata exists on first page of form-10k
-    raw_response = get_form10k_metadata_from_pdf_text_with_llm(pdf_text[0], "openai-completion-endpoint")
+    raw_response = get_form10k_metadata_from_pdf_text_with_llm(pdf_text[0], endpoint_name)
 
     # pydantic validation
     isResponseValid = is_llm_response_valid(raw_response)
@@ -68,13 +78,14 @@ for pdf_path in pdfs_to_process:
 
     # save markdown to volume
     markdown_file_name = pdfs_to_process[0].split("/")[-1].replace(".pdf", ".md")
-    with open(f"/Volumes/databricks_examples/financial_rag/form10k_markdown/{markdown_file_name}", "wt") as f:
+
+    with open(f"/Volumes/databricks_examples/{database}/form10k_markdown/{markdown_file_name}", "wt") as f:
         for page in pdf_markdown.pages:
             f.write(page.markdown)
 
     # update metadata and text tables
-    create_update_pdf_metadata(json_metadata)
-    delete_create_pdf_text(json_metadata, pdf_markdown)
+    create_update_pdf_metadata(json_metadata, database)
+    delete_create_pdf_text(json_metadata, pdf_markdown, database)
 
 # COMMAND ----------
 
@@ -83,17 +94,37 @@ for pdf_path in pdfs_to_process:
 
 # COMMAND ----------
 
-query = "SELECT * FROM databricks_examples.financial_rag.pdf_metadata"
-result_df = spark.sql(query)
-display(result_df)
-
-# 5bda4e72a9b82f27960c5d963d05b7d10802458b5911b867ac135eac91d94ab9
+database="test_financial_rag"
 
 # COMMAND ----------
 
-query = "SELECT * FROM databricks_examples.financial_rag.pdf_markdown_text"
+query = f"SELECT * FROM databricks_examples.{database}.pdf_metadata"
 result_df = spark.sql(query)
 display(result_df)
+
+# COMMAND ----------
+
+assert result_df.count() == 1
+assert result_df.select("fileNumber").first()["fileNumber"] == 137845
+assert result_df.select("tradingSymbol").first()["tradingSymbol"] == "MSFT"
+
+# COMMAND ----------
+
+query = f"SELECT * FROM databricks_examples.{database}.pdf_markdown_text"
+result_df = spark.sql(query)
+display(result_df)
+
+# COMMAND ----------
+
+result_df.count()
+
+# COMMAND ----------
+
+result_df.select("filenumber").distinct()
+
+# COMMAND ----------
+
+assert result_df.count() == 10
 
 # COMMAND ----------
 
