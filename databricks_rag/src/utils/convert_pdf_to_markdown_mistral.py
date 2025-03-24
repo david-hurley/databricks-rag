@@ -1,8 +1,19 @@
 from mistralai import Mistral
 
 def convert_pdf_to_markdown_mistral(pdf_path, api_key):
+    """
+    Send PDF file to Mistral OCR API to convert to markdown.
+
+    Args:
+        pdf_path (str): The path to the PDF file to convert.
+        api_key (str): The API key to authenticate with Mistral.
+
+    Returns:
+        dict: The response from the Mistral OCR API.
+    """
     client = Mistral(api_key=api_key)
 
+    # file_name is arbitrary
     uploaded_pdf = client.files.upload(
         file={
             "file_name": "pdf_to_process.pdf",
