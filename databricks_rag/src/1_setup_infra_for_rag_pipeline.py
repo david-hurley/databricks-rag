@@ -13,7 +13,7 @@ import mlflow.deployments
 # MAGIC ## Create secret scope for OpenAI and Mistral API key
 # MAGIC
 # MAGIC
-# MAGIC In a terminal run the following to create a scope, add your API key, and confirm scope creation
+# MAGIC In a terminal, run the following to create a scope, add your API key, and confirm scope creation
 # MAGIC <br/> <br/>
 # MAGIC ```
 # MAGIC databricks secrets create-scope openai
@@ -87,7 +87,8 @@ print(f"Successfully created model serving endpoint {endpoint_name}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Create database, volumes, and tables
+# MAGIC ## Create database (schema), volumes, and tables
+# MAGIC This would be called during integration testing or once when standing up a new environment.
 
 # COMMAND ----------
 
@@ -114,23 +115,23 @@ spark.sql(create_markdown_volume)
 # COMMAND ----------
 
 create_metadata_table_query = f"""
-CREATE TABLE IF NOT EXISTS databricks_examples.{database}.pdf_metadata (
-fileNumber BIGINT PRIMARY KEY,
-companyName STRING,
-tradingSymbol STRING,
-fiscalYearEndDate STRING,
-documentHash STRING
-) TBLPROPERTIES (delta.enableChangeDataFeed = true);
+  CREATE TABLE IF NOT EXISTS databricks_examples.{database}.pdf_metadata (
+    fileNumber BIGINT PRIMARY KEY,
+    companyName STRING,
+    tradingSymbol STRING,
+    fiscalYearEndDate STRING,
+    documentHash STRING
+  ) TBLPROPERTIES (delta.enableChangeDataFeed = true);
 """
 
 create_markdown_table_query = f"""
-CREATE TABLE IF NOT EXISTS databricks_examples.{database}.pdf_markdown_text (
-id BIGINT GENERATED ALWAYS AS IDENTITY,
-fileNumber BIGINT,
-markdownText STRING,
-pageNumber INT,
-FOREIGN KEY (fileNumber) REFERENCES databricks_examples.{database}.pdf_metadata(fileNumber)
-) TBLPROPERTIES (delta.enableChangeDataFeed = true);
+  CREATE TABLE IF NOT EXISTS databricks_examples.{database}.pdf_markdown_text (
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    fileNumber BIGINT,
+    markdownText STRING,
+    pageNumber INT,
+    FOREIGN KEY (fileNumber) REFERENCES databricks_examples.{database}.pdf_metadata(fileNumber)
+  ) TBLPROPERTIES (delta.enableChangeDataFeed = true);
 """
 
 spark.sql(create_metadata_table_query)
@@ -140,7 +141,7 @@ spark.sql(create_markdown_table_query)
 
 # MAGIC %md
 # MAGIC ## Copy Test PDF to Test Database
-# MAGIC Only needed for testing
+# MAGIC Integration tests will use sample pdf that is stored in volume (could be dev or something else, could store where you want). 
 
 # COMMAND ----------
 

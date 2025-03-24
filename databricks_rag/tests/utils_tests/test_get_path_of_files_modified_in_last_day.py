@@ -10,6 +10,9 @@ class TestGetPathOfFilesModifiedInLastDay:
         self.now = datetime.now()
     
     def test_files_modified_within_last_day(self):
+        """
+        Test that files modified within the last day are returned
+        """
         mock_files = [
             (self.mock_path, [], ["file1.pdf", "file2.pdf", "file3.pdf"]),
         ]
@@ -30,6 +33,9 @@ class TestGetPathOfFilesModifiedInLastDay:
         ]
 
     def test_no_files(self):
+        """
+        Test that an empty list is returned when there are no files in the directory
+        """
         mock_files = []
 
         with patch('os.walk', return_value=mock_files):

@@ -1,8 +1,6 @@
 # Databricks notebook source
 # MAGIC %load_ext autoreload
 # MAGIC %autoreload 2
-# MAGIC # Enables autoreload; learn more at https://docs.databricks.com/en/files/workspace-modules.html#autoreload-for-python-modules
-# MAGIC # To disable autoreload; run %autoreload 0
 
 # COMMAND ----------
 
@@ -19,16 +17,13 @@ from utils.delete_create_pdf_text import delete_create_pdf_text
 
 # MAGIC %md
 # MAGIC ## What this notebook does
-# MAGIC 1. Scan Volume for PDFs modified in last 24 hours (scheduled job)
-# MAGIC 2. Extract metadata from document title page using OpenAI serving endpoint (created in notebook 1)
-# MAGIC 3. Use metadata and document hash to check if document has already been processed
-# MAGIC 4. If document is new or has new content then convert to markdown
-# MAGIC 5. Upsert metadata and markdown to tables
+# MAGIC Transforms PDF to text and determines if PDF is a new or modified document. If so, extracts metadata and markdown text using LLMs and stores results in Unity Catalog tables. 
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## RAG Document Pipeline
+# MAGIC ## Fetch Parameter Values
+# MAGIC This allows running the notebook in different environments and testing. Parameters are defined in `databricks.yml` which is part of Databricks Asset Bundle.
 # MAGIC
 
 # COMMAND ----------
@@ -43,8 +38,18 @@ database = dbutils.widgets.get("database")
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ## Get files to process in RAG pipeline
+
+# COMMAND ----------
+
 pdfs_volume_path = f"/Volumes/databricks_examples/{database}/form10k_pdfs"
 pdfs_to_process = get_path_of_files_modified_in_last_day(pdfs_volume_path)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Run RAG Pipeline
 
 # COMMAND ----------
 
@@ -86,46 +91,3 @@ for pdf_path in pdfs_to_process:
     # update metadata and text tables
     create_update_pdf_metadata(json_metadata, database)
     delete_create_pdf_text(json_metadata, pdf_markdown, database)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Check table data
-
-# COMMAND ----------
-
-database="test_financial_rag"
-
-# COMMAND ----------
-
-query = f"SELECT * FROM databricks_examples.{database}.pdf_metadata"
-result_df = spark.sql(query)
-display(result_df)
-
-# COMMAND ----------
-
-assert result_df.count() == 1
-assert result_df.select("fileNumber").first()["fileNumber"] == 137845
-assert result_df.select("tradingSymbol").first()["tradingSymbol"] == "MSFT"
-
-# COMMAND ----------
-
-query = f"SELECT * FROM databricks_examples.{database}.pdf_markdown_text"
-result_df = spark.sql(query)
-display(result_df)
-
-# COMMAND ----------
-
-result_df.count()
-
-# COMMAND ----------
-
-result_df.select("filenumber").distinct()
-
-# COMMAND ----------
-
-assert result_df.count() == 10
-
-# COMMAND ----------
-
-

@@ -5,12 +5,15 @@ from databricks.vector_search.client import VectorSearchClient
 
 # MAGIC %md
 # MAGIC ## What this notebook does
-# MAGIC 1. Create vectore search endpoint
-# MAGIC 2. Query endpoint and return document text and page number
+# MAGIC Creates vector search index and endpoint to query index 
 
 # COMMAND ----------
 
-# The following line automatically generates a PAT Token for authentication
+# MAGIC %md
+# MAGIC ## Create vector search endpoint
+
+# COMMAND ----------
+
 client = VectorSearchClient()
 
 client.create_endpoint(
@@ -20,8 +23,26 @@ client.create_endpoint(
 
 # COMMAND ----------
 
-index = client.get_index(endpoint_name="form10k_vector_search_endpoint", index_name="databricks_examples.financial_rag.markdown_text_vectors")
-index.describe()
+# MAGIC %md
+# MAGIC ## Create vector search index
+# MAGIC This will create a index and compute embeddings using defined model and source table column
+
+# COMMAND ----------
+
+index = client.create_delta_sync_index(
+  endpoint_name="form10k_vector_search_endpoint",
+  source_table_name="databricks_examples.financial_rag.pdf_markdown_text",
+  index_name="databricks_examples.financial_rag.pdf_markdown_text_index",
+  pipeline_type="TRIGGERED",
+  primary_key="id",
+  embedding_source_column="markdownText",
+  embedding_model_endpoint_name="databricks-bge-large-en"
+)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Query the index
 
 # COMMAND ----------
 
@@ -37,7 +58,3 @@ for entry in results['result']['data_array']:
     print(f"Page Number: {entry[0]}")
     print(f"Content: {entry[1]}")
     print("")
-
-# COMMAND ----------
-
-
