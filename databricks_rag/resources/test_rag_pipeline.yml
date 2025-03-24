@@ -25,7 +25,7 @@ resources:
 
         - task_key: validate_process_pdfs_task
           depends_on:
-            - task_key: process_pdfs_task
+            - task_key: process_pdfs_load_data_task
           notebook_task:
             notebook_path: ../tests/integration_tests/validate_process_pdf_pipeline.py
             base_parameters:
