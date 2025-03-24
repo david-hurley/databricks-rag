@@ -1,8 +1,8 @@
-# The main job for test_env_setup.
+# The main job for test_rag_pipeline_e2e
 resources:
   jobs:
     test_rag_pipeline:
-      name: test_rag_pipeline_e2e
+      name: test_rag_pipeline
 
       tasks:
         - task_key: setup_infra_task
@@ -13,7 +13,7 @@ resources:
               database: ${var.test_database}
           max_retries: 0
 
-        - task_key: process_pdfs_task
+        - task_key: process_pdfs_load_data_task
           depends_on:
             - task_key: setup_infra_task
           notebook_task:
